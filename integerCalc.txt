@@ -1,0 +1,95 @@
+(1) #include <ctype.h>
+(2) #include <stdlib.h>
+(3) #include <stdio.h>
+(4) int token; /* holds the current input character for the parse */
+(5) /* declarations to allow arbitrary recursion */
+(6) void command();
+(7) int expr();
+(8) int term();
+(9) int factor();
+(10) int number();
+(11) int digit();
+(12) void error(char* message){
+(13) printf("parse error: %s\n", message);
+(14) exit(1);
+(15) }
+(16) void getToken(){
+(17) /* tokens are characters */
+(18) token = getchar();
+(19) }
+(20) void match(char c, char* message){
+(21) if (token == c) getToken();
+(22) else error(message);
+(23) }
+(24) void command(){
+(25) /* command -> expr '\n' */
+(26) int result = expr();
+(27) if (token == '\n') /* end the parse and print the result */
+(28) printf("The result is: %d\n",result);
+(29) else error("tokens after end of expression");
+(30) }
+(31) int expr(){
+(32) /* expr -> term { '+' term } */
+(33) int result = term();
+(34) while (token == '+'){
+(35) match('+', "+ expected");
+(36) result += term();
+(37) }
+(38) return result;
+(39) }
+(40) int term(){
+(41) /* term -> factor { '*' factor } */
+(42) int result = factor();
+(43) while (token == '*'){
+(44) match('*', "* expected");
+(45) result *= factor();
+(46) }
+(47) return result;
+(48) }
+(49) int factor(){
+(50) /* factor -> '(' expr ')' | number */
+(51) int result;
+(52) if (token == '('){
+(53) match('(', "( expected");
+(54) result = expr();
+(55) match(')', ") expected");
+(56) }
+(57) else
+(58) result = number();
+(59) return result;
+(60) }
+(61) int number(){
+(62) /* number -> digit { digit } */
+(63) int result = digit();
+(64) while (isdigit(token))
+(65) /* the value of a number with a new trailing digit
+(66) is its previous value shifted by a decimal place
+(67) plus the value of the new digit
+(68) */
+(69) result = 10 * result + digit();
+(70) return result;
+(71) }
+(72) int digit(){
+(73) /* digit -> '0' | '1' | '2' | '3' | '4'
+(74) | '5' | '6' | '7' | '8' | '9' */
+(75) int result;
+(76) if (isdigit(token)){
+(77) /* the numeric value of a digit character
+(78) is the difference between its ascii value and the
+(79) ascii value of the character '0'
+(80) */
+(81) result = token - '0';
+(82) match(token, "( expected");
+(83) }
+(84) else
+(85) error("digit expected");
+(86) return result;
+(87) }
+(88) void parse(){
+(89) getToken(); /* get the first token */
+(90) command(); /* call the parsing procedure for the start symbol */
+(91) }
+(92) int main(){
+(93) parse();
+(94) return 0;
+(95) }

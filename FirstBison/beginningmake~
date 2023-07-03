@@ -1,0 +1,19 @@
+$ flex postfix.l
+$ gcc -o postfix lex.yy.c -lfl
+
+
+
+
+http://www-h.eng.cam.ac.uk/help/tpl/languages/flexbison/
+
+bison -d calc.y
+
+flex  -o calc.lex.c calc.lex
+gcc  -o calc calc.lex.c calc.tab.c -lfl -lm 
+
+
+
+calc: calc.y calc.lex
+	bison -d calc.y
+	flex  -o calc.lex.c calc.lex
+	gcc  -o calc calc.lex.c calc.tab.c -lfl -lm 

@@ -1,0 +1,18 @@
+void sentence(){
+nounPhrase();
+verbPhrase();
+}
+void nounPhrase(){
+article();
+noun();
+}
+void article(){
+if (token == "a") match("a", "a expected");
+else if (token == "the") match("the", "the expected");
+else error("article expected");
+}
+
+void match(TokenType expected, char* message){
+if (token == expected) getToken();
+else error(message);
+}

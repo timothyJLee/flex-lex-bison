@@ -1,0 +1,10 @@
+
+
+Language Groovie
+ - creates code that runes under java VM dynamic language like python with lambda closures
+ - research and do project on class
+
+Lambda Closure
+ - Scheme
+ - LISP
+ - Investigate and report to class

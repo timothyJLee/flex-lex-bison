@@ -1,0 +1,121 @@
+public class Parser extends Object{
+private Chario chario;
+private Scanner scanner;
+private Token token;
+private Set<Integer> addingOperator,
+multiplyingOperator,
+relationalOperator,
+basicDeclarationHandles,
+statementHandles;
+public Parser(Chario c, Scanner s){
+chario = c;
+scanner = s;
+initHandles();
+token = scanner.nextToken();
+}
+private void initHandles(){
+addingOperator = new HashSet<Integer>();
+addingOperator.add(Token.PLUS);
+addingOperator.add(Token.MINUS);
+multiplyingOperator = new HashSet<Integer>();
+multiplyingOperator.add(Token.MUL);
+multiplyingOperator.add(Token.DIV);
+multiplyingOperator.add(Token.MOD);
+relationalOperator = new HashSet<Integer>();
+relationalOperator.add(Token.EQ);
+relationalOperator.add(Token.NE);
+relationalOperator.add(Token.LE);
+relationalOperator.add(Token.GE);
+relationalOperator.add(Token.LT);
+relationalOperator.add(Token.GT);
+basicDeclarationHandles = new HashSet<Integer>();
+basicDeclarationHandles.add(Token.TYPE);
+basicDeclarationHandles.add(Token.ID);
+basicDeclarationHandles.add(Token.PROC);
+statementHandles = new HashSet<Integer>();
+statementHandles.add(Token.EXIT);
+statementHandles.add(Token.ID);
+statementHandles.add(Token.IF);
+statementHandles.add(Token.LOOP);
+statementHandles.add(Token.NULL);
+statementHandles.add(Token.WHILE);
+}
+
+
+// Other parsing methods go here
+
+public void parse(){
+subprogramBody();
+accept(Token.EOF, "extra symbols after logical end of program");
+}
+private void accept(int expected, String errorMessage){
+if (token.code != expected)
+fatalError(errorMessage);
+token = scanner.nextToken();
+}
+private void fatalError(String errorMessage){
+chario.putError(errorMessage);
+throw new RuntimeException("Fatal error");
+}
+
+
+/*
+subprogramBody =
+subprogramSpecification "is"
+declarativePart
+"begin" sequenceOfStatements
+"end" [ <procedure>identifier ] ";"
+*/
+private void subprogramBody(){
+subprogramSpecification();
+accept(Token.IS, "'is' expected");
+declarativePart();
+accept(Token.BEGIN, "'begin' expected");
+sequenceOfStatements();
+accept(Token.END, "'end' expected");
+if (token.code == Token.ID)
+token = scanner.nextToken();
+accept(Token.SEMI, "semicolon expected");
+}
+
+/*
+declarativePart = { basicDeclaration }
+*/
+private void declarativePart(){
+while (basicDeclarationHandles.contains(token))
+basicDeclaration();
+}
+/*
+basicDeclaration = objectDeclaration | numberDeclaration
+| typeDeclaration | subprogramBody
+*/
+private void basicDeclaration(){
+switch (token.code){
+case Token.ID:
+numberOrObjectDeclaration();
+break;
+case Token.TYPE:
+typeDeclaration();
+break;
+case Token.PROC:
+subprogramBody();
+break;
+default: fatalError("error in declaration part");
+}
+
+/*
+simpleExpression =
+[ unaryAddingOperator ] term { binaryAddingOperator term }
+*/
+private void simpleExpression(){
+if (addingOperator.contains(token))
+token = scanner.nextToken();
+term();
+while (addingOperator.contains(token)){
+token = scanner.nextToken();
+term();
+}
+}
+}
+}
+

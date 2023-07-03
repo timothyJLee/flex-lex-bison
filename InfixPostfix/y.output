@@ -1,0 +1,290 @@
+Grammar
+
+    0 $accept: line $end
+
+    1 line: %empty
+    2     | line inexp NL
+
+    3 inexp: NUM
+    4      | inexp '+' inexp
+    5      | inexp '-' inexp
+    6      | inexp '*' inexp
+    7      | inexp '/' inexp
+    8      | '-' inexp
+    9      | inexp '%' inexp
+   10      | '(' inexp ')'
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'%' (37) 9
+'(' (40) 10
+')' (41) 10
+'*' (42) 6
+'+' (43) 4
+'-' (45) 5 8
+'/' (47) 7
+error (256)
+NEG (258)
+NUM (259) 3
+NL (260) 2
+
+
+Nonterminals, with rules where they appear
+
+$accept (13)
+    on left: 0
+line (14)
+    on left: 1 2, on right: 0 2
+inexp (15)
+    on left: 3 4 5 6 7 8 9 10, on right: 2 4 5 6 7 8 9 10
+
+
+State 0
+
+    0 $accept: . line $end
+
+    $default  reduce using rule 1 (line)
+
+    line  go to state 1
+
+
+State 1
+
+    0 $accept: line . $end
+    2 line: line . inexp NL
+
+    $end  shift, and go to state 2
+    '-'   shift, and go to state 3
+    NUM   shift, and go to state 4
+    '('   shift, and go to state 5
+
+    inexp  go to state 6
+
+
+State 2
+
+    0 $accept: line $end .
+
+    $default  accept
+
+
+State 3
+
+    8 inexp: '-' . inexp
+
+    '-'  shift, and go to state 3
+    NUM  shift, and go to state 4
+    '('  shift, and go to state 5
+
+    inexp  go to state 7
+
+
+State 4
+
+    3 inexp: NUM .
+
+    $default  reduce using rule 3 (inexp)
+
+
+State 5
+
+   10 inexp: '(' . inexp ')'
+
+    '-'  shift, and go to state 3
+    NUM  shift, and go to state 4
+    '('  shift, and go to state 5
+
+    inexp  go to state 8
+
+
+State 6
+
+    2 line: line inexp . NL
+    4 inexp: inexp . '+' inexp
+    5      | inexp . '-' inexp
+    6      | inexp . '*' inexp
+    7      | inexp . '/' inexp
+    9      | inexp . '%' inexp
+
+    '-'  shift, and go to state 9
+    '+'  shift, and go to state 10
+    '*'  shift, and go to state 11
+    '/'  shift, and go to state 12
+    '%'  shift, and go to state 13
+    NL   shift, and go to state 14
+
+
+State 7
+
+    4 inexp: inexp . '+' inexp
+    5      | inexp . '-' inexp
+    6      | inexp . '*' inexp
+    7      | inexp . '/' inexp
+    8      | '-' inexp .
+    9      | inexp . '%' inexp
+
+    '%'  shift, and go to state 13
+
+    $default  reduce using rule 8 (inexp)
+
+
+State 8
+
+    4 inexp: inexp . '+' inexp
+    5      | inexp . '-' inexp
+    6      | inexp . '*' inexp
+    7      | inexp . '/' inexp
+    9      | inexp . '%' inexp
+   10      | '(' inexp . ')'
+
+    '-'  shift, and go to state 9
+    '+'  shift, and go to state 10
+    '*'  shift, and go to state 11
+    '/'  shift, and go to state 12
+    '%'  shift, and go to state 13
+    ')'  shift, and go to state 15
+
+
+State 9
+
+    5 inexp: inexp '-' . inexp
+
+    '-'  shift, and go to state 3
+    NUM  shift, and go to state 4
+    '('  shift, and go to state 5
+
+    inexp  go to state 16
+
+
+State 10
+
+    4 inexp: inexp '+' . inexp
+
+    '-'  shift, and go to state 3
+    NUM  shift, and go to state 4
+    '('  shift, and go to state 5
+
+    inexp  go to state 17
+
+
+State 11
+
+    6 inexp: inexp '*' . inexp
+
+    '-'  shift, and go to state 3
+    NUM  shift, and go to state 4
+    '('  shift, and go to state 5
+
+    inexp  go to state 18
+
+
+State 12
+
+    7 inexp: inexp '/' . inexp
+
+    '-'  shift, and go to state 3
+    NUM  shift, and go to state 4
+    '('  shift, and go to state 5
+
+    inexp  go to state 19
+
+
+State 13
+
+    9 inexp: inexp '%' . inexp
+
+    '-'  shift, and go to state 3
+    NUM  shift, and go to state 4
+    '('  shift, and go to state 5
+
+    inexp  go to state 20
+
+
+State 14
+
+    2 line: line inexp NL .
+
+    $default  reduce using rule 2 (line)
+
+
+State 15
+
+   10 inexp: '(' inexp ')' .
+
+    $default  reduce using rule 10 (inexp)
+
+
+State 16
+
+    4 inexp: inexp . '+' inexp
+    5      | inexp . '-' inexp
+    5      | inexp '-' inexp .
+    6      | inexp . '*' inexp
+    7      | inexp . '/' inexp
+    9      | inexp . '%' inexp
+
+    '*'  shift, and go to state 11
+    '/'  shift, and go to state 12
+    '%'  shift, and go to state 13
+
+    $default  reduce using rule 5 (inexp)
+
+
+State 17
+
+    4 inexp: inexp . '+' inexp
+    4      | inexp '+' inexp .
+    5      | inexp . '-' inexp
+    6      | inexp . '*' inexp
+    7      | inexp . '/' inexp
+    9      | inexp . '%' inexp
+
+    '*'  shift, and go to state 11
+    '/'  shift, and go to state 12
+    '%'  shift, and go to state 13
+
+    $default  reduce using rule 4 (inexp)
+
+
+State 18
+
+    4 inexp: inexp . '+' inexp
+    5      | inexp . '-' inexp
+    6      | inexp . '*' inexp
+    6      | inexp '*' inexp .
+    7      | inexp . '/' inexp
+    9      | inexp . '%' inexp
+
+    '%'  shift, and go to state 13
+
+    $default  reduce using rule 6 (inexp)
+
+
+State 19
+
+    4 inexp: inexp . '+' inexp
+    5      | inexp . '-' inexp
+    6      | inexp . '*' inexp
+    7      | inexp . '/' inexp
+    7      | inexp '/' inexp .
+    9      | inexp . '%' inexp
+
+    '%'  shift, and go to state 13
+
+    $default  reduce using rule 7 (inexp)
+
+
+State 20
+
+    4 inexp: inexp . '+' inexp
+    5      | inexp . '-' inexp
+    6      | inexp . '*' inexp
+    7      | inexp . '/' inexp
+    9      | inexp . '%' inexp
+    9      | inexp '%' inexp .
+
+    '%'  shift, and go to state 13
+
+    $default  reduce using rule 9 (inexp)

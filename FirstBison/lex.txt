@@ -1,0 +1,44 @@
+
+
+
+%{
+#include <math.h>
+#include "y.tab.h"
+
+int yywrap(void);
+%}
+
+/* DEFINITIONS */
+INTEGER    -?[0-9]+
+STRING   [a-zA-Z]*
+HORN     "HORN"|"horn"|"Horn"
+WSP [ \t]
+
+%%
+
+
+{INTEGER}    { yylval.integer = atoi(yytext); return INT; }     
+{INTEGER}"."{INTEGER}        {sscanf(yytext,"%lf", &yylval.real); return REAL;}
+{HORN} {yylval.string = yytext; return HORN; } 
+[\n] { return ENDOFLINE; } /*For the rest Bison need only the token.*/
+[(] { return LPAREN; }
+[)] { return RPAREN; }
+[+] { return PLUS; }
+[-] { return MINUS; }
+[*] { return MULT; }
+[/] { return DIV; }
+[%] { return MOD; }
+[\^] { return POWER; }
+{WSP}+ { ; } /*The whitespace is dropped*/
+. { }
+
+%%
+
+
+int yywrap(void)
+{
+    return 0;
+}
+
+
+

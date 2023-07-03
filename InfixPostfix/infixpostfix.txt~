@@ -1,0 +1,65 @@
+
+
+
+
+Infix Postfix
+
+Zip up your source code and optional makefile and submit to e-learning.
+
+Write two C programs: 1. inpost  2. post
+
+1.      Infix to postfix converter using Shunting-yard algorithm
+
+2.      Postfix evaluator using stack algorithm below
+
+They will work on integers with the - + * / % operators and ( ).
+
+One expression per line, each line produces an answer.  Programs loop until EOF.
+
+Both programs should write prompts and error messages to stderr and the regular output to stdout, so that they can be run as
+
+inpost | post
+
+or
+
+inpost > file
+
+post < file
+
+inpost should only output correct post fix expressions so keep the output in the queue until it is found to be correct.
+
+Use this algorithm.   http://en.wikipedia.org/wiki/Shunting-yard_algorithm
+
+If you use information from any other web site be sure to put it in your comments at the top of your programs along with your name.  You must write your own code not copy any code from someone else.
+
+The algorithm for evaluating any postfix expression is fairly straightforward:
+
+�        While there are input tokens left
+
+o   Read the next token from input.
+
+o   If the token is a value
+
+�  Push it onto the stack.
+
+o   Otherwise, the token is an operator.
+
+o   It is known a priori that the operator takes n arguments.
+
+o   If there are fewer than n values on the stack
+
+�  (Error) The user has not input sufficient values in the expression.
+
+o   Else, Pop the top n values from the stack.
+
+o   Evaluate the operator, with the values as arguments.
+
+o   Push the returned results, if any, back onto the stack.
+
+�        If there is only one value in the stack
+
+o   That value is the result of the calculation.
+
+�        Otherwise, there are more values in the stack
+
+o   (Error) The user input has too many values.

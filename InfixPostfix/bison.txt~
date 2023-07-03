@@ -1,0 +1,188 @@
+
+
+/*
+   Timothy Lee
+   11/01/14
+    Bison/Flex 2
+    - Create lexical scanner using flex that can recognize tokens including integers and floats in unison with Bison
+       - While loop to call yylex() and switch to determine which defined token recognized
+          - returns different token based off of a variety of regex matched characters
+       - Calculate expression with proper associativity and precedence and print results
+       - Add support for variables by providing a symbol table that can lookup values
+    - generate "lex.yy.c" file by using proper make commands from test.l
+*/
+
+%{
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include "stack.h"
+
+  void yyerror (char const *);
+  char* postfix();
+
+  char prevop;
+  char** output;
+  int outputindex = 0;
+%}
+
+%error-verbose
+
+%union { 
+   int integer; 
+   char* str; 
+}
+
+%start line
+
+%left '-' '+'
+%left '*' '/'
+%precedence NEG   /* negation--unary minus */
+%right '%'        /* mod */
+
+%token<str> NUM NL
+%type<str> inexp
+
+%%
+
+line: 
+| line inexp NL  { /* printf("BISONLINE: %s\n", $1);  printf("BISONLINE: %s\n", postfix()); */ }
+;
+inexp: NUM                { $$ = $1; 
+				output = malloc(sizeof(char**) * 100);
+				output[outputindex] = malloc(sizeof(char*) * 1);
+			        sprintf(output[outputindex], "%s", $$); 
+				outputindex++;  
+				printf("BISON NUMinexp %s\n", $$);   printf("BISON NUMinexp %s\n", output[outputindex-1]);
+				printf("BISON NUMinexp %s\n", $1);
+		     }
+| inexp '+' inexp        {
+				pop(&prevop);
+				if(prevop == '+' | prevop == '-' | prevop == '*' | prevop == '/')
+				{
+					while(prevop == '+' | prevop == '-' | prevop == '*' | prevop == '/')
+					{
+						output[outputindex] = malloc(sizeof(char*) * 1);
+						sprintf(output[outputindex], "%s", &prevop); outputindex++;
+						pop(&prevop);
+					}
+					push(prevop);
+				}	
+				else	
+				{
+					push(prevop);
+				}
+		
+				push('+');		
+			 }
+| inexp '-' inexp        {      
+				pop(&prevop);
+				if(prevop == '+' | prevop == '-' | prevop == '*' | prevop == '/')
+				{
+					while(prevop == '+' | prevop == '-' | prevop == '*' | prevop == '/')
+					{
+						output[outputindex] = malloc(sizeof(char*) * 1);
+						sprintf(output[outputindex], "%s", &prevop); outputindex++;
+						pop(&prevop);
+					}
+					push(prevop);
+				}	
+				else	
+				{
+					push(prevop);
+				}
+		
+				push('-');
+			 }
+| inexp '*' inexp        {    
+				pop(&prevop);
+				if(prevop == '*' | prevop == '/')
+				{
+					while(prevop == '*' | prevop == '/')
+					{
+						output[outputindex] = malloc(sizeof(char*) * 1);
+						sprintf(output[outputindex], "%s", &prevop); outputindex++;
+						pop(&prevop);
+					}
+					push(prevop);
+				}	
+				else	
+				{
+					push(prevop);
+				}
+		
+				push('*');
+			 }
+| inexp '/' inexp        {     
+				pop(&prevop);
+				if(prevop == '*' | prevop == '/')
+				{
+					while(prevop == '*' | prevop == '/')
+					{
+						output[outputindex] = malloc(sizeof(char*) * 1);
+						sprintf(output[outputindex], "%s", &prevop); outputindex++;
+						pop(&prevop);
+					}
+					push(prevop);
+				}	
+				else	
+				{
+					push(prevop);
+				}
+		
+				push('/');
+			 }
+| '-' inexp  %prec NEG {    
+				output[outputindex] = malloc(sizeof(char*) * 1);     
+			        sprintf(output[outputindex], "-%s", $2); 
+				outputindex++;
+		       }
+| inexp '%' inexp        { 
+				push('%');
+				printf("BISON inexp %s\n", $$);   printf("BISON inexp %s\n", output[outputindex-1]);
+				printf("BISON inexp %s\n", $1);
+			 }
+| '(' inexp ')'        { $$ = $2;     
+				push('(');
+	
+				output[outputindex] = malloc(sizeof(char*) * 1);
+				sprintf(output[outputindex], "%s", $$); outputindex++;
+
+				pop(&prevop);
+				printf("BISON inexp prevop %s\n", &prevop);
+				while(prevop != '(')
+				{
+					output[outputindex] = malloc(sizeof(char*) * 1);
+					sprintf(output[outputindex], "%s", &prevop); outputindex++;
+					pop(&prevop);
+				}
+				printf(" is equal to %s\n", *output);	
+		       }
+;
+%%
+
+
+char* postfix()
+{
+  char prevop;
+		pop(&prevop);
+		sprintf(output[outputindex], "%s", &prevop); outputindex++;
+		while(prevop != '\0')
+		{
+			sprintf(output[outputindex], "%s", &prevop); outputindex++;
+		}
+	 	printf(" is equal to %s\n", *output);
+  return *output;
+}
+
+void yyerror (char const *s)
+{
+  fprintf(stderr, "%s\n", s);
+}
+
+
+
+
+
+
+
+

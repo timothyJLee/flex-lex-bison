@@ -1,0 +1,63 @@
+
+/*
+   Timothy Lee
+   10/02/14
+   Flex Scanner
+    - Create lexical scanner using flex that can recognize tokens including integers and floats
+    - create test program to take place of yacc/bison
+       - While loop to call yylex() and switch to determine which defined token recognized
+          - returns different token based off of a variety of regex matched characters
+       - Defined tokens and structure defining yylval in seperate header file
+          - Attempts to use yylval to make future bison work more simple
+       - And print: Token INTEGER, Value 123 (where 1 is TokenValue and 23 is yytextValue)
+    - generate "lex.yy.c" file by using proper make commands from test.l
+
+  Sources:
+    - http://flex.sourceforge.net/manual/
+    - http://luv.asn.au/overheads/lex_yacc/lex.html#lexc
+    - http://www-h.eng.cam.ac.uk/help/tpl/languages/flexbison/
+    - http://marvin.cs.uidaho.edu/Teaching/CS210/flex.html
+    - http://www.csee.umbc.edu/courses/331/fall11/hw/hw4/calc/Makefile
+    - http://regexlib.com/Search.aspx?k=integer&AspxAutoDetectCookieSupport=1
+*/
+
+%{
+#include <math.h>
+#include "y.tab.h"
+
+int yywrap(void);
+%}
+
+/* DEFINITIONS */
+INTEGER    -?[0-9]+
+STRING   [a-zA-Z]*
+HORN     "HORN"|"horn"|"Horn"
+IF       "if"
+THEN     "then"
+ELSE     "else"
+WSP [ \t]
+
+%%
+
+
+{INTEGER}    { yylval.integer = atoi(yytext); return INT; }     
+{INTEGER}"."{INTEGER}        {sscanf(yytext,"%lf", &yylval.real); return REAL;}
+{HORN} {yylval.string = yytext; return HORN; } 
+[\n] { return ENDOFLINE; } /*For the rest Bison need only the token.*/
+[(] { return LPAREN; }
+[)] { return RPAREN; }
+[+] { return PLUS; }
+[-] { return MINUS; }
+[*] { return MULT; }
+[/] { return DIV; }
+{WSP}+ { ; } /*The whitespace is dropped*/
+. { }
+
+%%
+
+
+int yywrap(void)
+{
+    return 0;
+}
+

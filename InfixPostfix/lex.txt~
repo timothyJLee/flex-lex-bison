@@ -1,0 +1,64 @@
+
+/*
+   Timothy Lee
+   10/02/14
+    Flex Scanner
+    - Create lexical scanner using flex that can recognize tokens including integers and floats
+    - create test program to take place of yacc/bison
+       - While loop to call yylex() and switch to determine which defined token recognized
+          - returns different token based off of a variety of regex matched characters
+       - Defined tokens and structure defining yylval in seperate header file
+          - Attempts to use yylval to make future bison work more simple
+       - And print: Token INTEGER, Value 123 (where 1 is TokenValue and 23 is yytextValue)
+    - generate "lex.yy.c" file by using proper make commands from test.l
+
+  Sources:
+    - http://flex.sourceforge.net/manual/
+    - http://luv.asn.au/overheads/lex_yacc/lex.html#lexc
+    - http://www-h.eng.cam.ac.uk/help/tpl/languages/flexbison/
+    - http://marvin.cs.uidaho.edu/Teaching/CS210/flex.html
+    - http://www.csee.umbc.edu/courses/331/fall11/hw/hw4/calc/Makefile
+    - http://regexlib.com/Search.aspx?k=integer&AspxAutoDetectCookieSupport=1
+*/
+
+
+%{
+#include <math.h>
+#include "y.tab.h"
+%}
+
+/* DEFINITIONS */
+INTEGER    -?[0-9]+
+STRING   [a-zA-Z]*
+HORN     "HORN"|"horn"|"Horn"
+
+%%
+
+
+{INTEGER}    { yylval.integer = atoi(yytext); return INT_TOKEN; }     
+{INTEGER}"."{INTEGER}        {sscanf(yytext,"%lf", &yylval.real); return REAL_TOKEN;}
+{HORN} {sscanf(yytext,"%s", yylval.string); return HORN_TOKEN; }
+"+" {sscanf(yytext,"%s", yylval.string); return PLUS_TOKEN;}
+"-" {sscanf(yytext,"%s", yylval.string); return MINUS_TOKEN; }
+"*" {sscanf(yytext,"%s", yylval.string); return MULT_TOKEN; }
+"/" {sscanf(yytext,"%s", yylval.string); return DIV_TOKEN; }
+"%" {sscanf(yytext,"%s", yylval.string); return MOD_TOKEN; }
+"^" {sscanf(yytext,"%s", yylval.string); return POWER_TOKEN; }
+"<" {sscanf(yytext,"%s", yylval.string); return LESS_THAN_TOKEN; }
+">" {sscanf(yytext,"%s", yylval.string); return GREATER_THAN_TOKEN; }
+"<=" {sscanf(yytext,"%s", yylval.string); return LESS_THAN_EQUAL_TOKEN; }
+">=" {sscanf(yytext,"%s", yylval.string); return GREATER_THAN_EQUAL_TOKEN; }
+"==" {sscanf(yytext,"%s", yylval.string); return EQUAL_TOKEN; }
+"=" {sscanf(yytext,"%s", yylval.string); return ASSIGN_TOKEN; }
+"!" {sscanf(yytext,"%s", yylval.string); return BOOL_NOT_TOKEN; }
+"(" {sscanf(yytext,"%s", yylval.string); return KEY_PAREN_LEFT_TOKEN; }
+")" {sscanf(yytext,"%s", yylval.string); return KEY_PAREN_RIGHT_TOKEN; }
+"{" {sscanf(yytext,"%s", yylval.string); return KEY_BRACKET_LEFT_TOKEN; }
+"}" {sscanf(yytext,"%s", yylval.string); return KEY_BRACKET_RIGHT_TOKEN; }
+"?" {sscanf(yytext,"%s", yylval.string); return QUESTION_TOKEN; }
+"\n" {sscanf(yytext,"%s", yylval.string); return ENDOFLINE_TOKEN;  }     
+         .           {sscanf(yytext,"%s", yylval.string); return UNREC; }
+
+%%
+
+

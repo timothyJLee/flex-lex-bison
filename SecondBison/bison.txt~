@@ -1,0 +1,248 @@
+
+/*
+   Timothy Lee
+   11/01/14
+    Bison/Flex 2
+    - Create lexical scanner using flex that can recognize tokens including integers and floats in unison with Bison
+       - While loop to call yylex() and switch to determine which defined token recognized
+          - returns different token based off of a variety of regex matched characters
+       - Calculate expression with proper associativity and precedence and print results
+       - Add support for variables by providing a symbol table that can lookup values
+    - generate "lex.yy.c" file by using proper make commands from test.l
+*/
+
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+int yyerror(const char*);
+int symsearch(char*);
+void chop(char*);
+
+double* sym;
+char** symname;
+int index = 0;
+%}
+
+%error-verbose
+
+%union{
+double real;
+int integer;
+int integerv;
+char* string;
+}
+
+%start line
+%type <real> rexpr
+
+%right ASSIGN
+%left PLUS MINUS
+%left MULT DIV
+%right POWER MOD
+%nonassoc LPAREN RPARENT
+
+%token <real> REAL 
+%token <integer> INT
+%token <string> VAR
+%token <string> PLUS  
+%token <string> MINUS  
+%token <string> MULT  
+%token <string> DIV  
+%token <string> MOD  
+%token <string> POWER  
+%token <string> ASSIGN   
+%token <string> LPAREN
+%token <string> RPAREN   
+%token <string> HORN  
+%token <string> QUESTION  
+%token ENDOFLINE  
+%token UNREC  
+
+
+%%
+line: 
+    | line HORN rexpr QUESTION ENDOFLINE   {   printf("=\t%f\n", $3);  }
+    | line rexpr ENDOFLINE {printf("Result -> %f\n", $2);  }
+    | line ENDOFLINE   
+;
+rexpr: rexpr PLUS rexpr {  $$ = $1 + $3; }
+    | VAR PLUS VAR {  
+			char* var = (char*)strtok($3, "+");
+			int a = symsearch(var);
+
+			char* var2 = (char*)strtok($1, "+");
+			int b = symsearch(var2);
+
+			if(a != -1) { $$ = sym[a] + sym[b]; } 
+		     }
+    | VAR PLUS rexpr {  
+			char* var = (char*)strtok($1, "+");
+			int a = symsearch(var);
+			printf("Result a, index -> %d, %d, %f\n", a, index, sym[index-1]);
+			if(a != -1) { $$ = sym[a] + $3; }
+		     }
+    | rexpr PLUS VAR {  
+			char* var = (char*)strtok($3, "+");
+			int a = symsearch(var);
+			if(a != -1) { $$ = $1 + sym[a]; }
+		     }
+    | rexpr MINUS rexpr { $$ = $1 - $3; }
+    | VAR MINUS VAR {  
+			char* var = (char*)strtok($3, "-");
+			int a = symsearch(var);
+
+			char* var2 = (char*)strtok($1, "-");
+			int b = symsearch(var2);
+
+			if(a != -1) { $$ = sym[a] - sym[b]; } 
+		     }
+    | VAR MINUS rexpr {  
+			char* var = (char*)strtok($1, "-");
+			int a = symsearch(var);
+			printf("Result a, index -> %d, %d, %f\n", a, index, sym[index-1]);
+			if(a != -1) { $$ = sym[a] - $3; }
+		     }
+    | rexpr MINUS VAR {  
+			char* var = (char*)strtok($3, "-");
+			int a = symsearch(var);
+			if(a != -1) { $$ = $1 - sym[a]; }
+		     }
+    | rexpr MULT rexpr { $$ = $1 * $3; }
+    | VAR MULT VAR {  
+			char* var = (char*)strtok($3, "*");
+			int a = symsearch(var);
+
+			char* var2 = (char*)strtok($1, "*");
+			int b = symsearch(var2);
+
+			if(a != -1) { $$ = sym[a] * sym[b]; } 
+		     }
+    | VAR MULT rexpr {  
+			char* var = (char*)strtok($1, "*");
+			int a = symsearch(var);
+			printf("Result a, index -> %d, %d, %f\n", a, index, sym[index-1]);
+			if(a != -1) { $$ = sym[a] * $3; }
+		     }
+    | rexpr MULT VAR {  
+			char* var = (char*)strtok($3, "*");
+			int a = symsearch(var);
+			if(a != -1) { $$ = $1 * sym[a]; }
+		     }
+    | rexpr DIV rexpr { $$ = $1 / $3; }
+    | VAR DIV VAR {  
+			char* var = (char*)strtok($3, "/");
+			int a = symsearch(var);
+
+			char* var2 = (char*)strtok($1, "/");
+			int b = symsearch(var2);
+
+			if(a != -1) { $$ = sym[a] / sym[b]; } 
+		     }
+    | VAR DIV rexpr {  
+			char* var = (char*)strtok($1, "/");
+			int a = symsearch(var);
+			printf("Result a, index -> %d, %d, %f\n", a, index, sym[index-1]);
+			if(a != -1) { $$ = sym[a] / $3; }
+		     }
+    | rexpr DIV VAR {  
+			char* var = (char*)strtok($3, "/");
+			int a = symsearch(var);
+			if(a != -1) { $$ = $1 / sym[a]; }
+		     }
+    | rexpr MOD rexpr { $$ = fmod($1, $3); }
+    | VAR MOD VAR {  
+			char* var = (char*)strtok($3, "%");
+			int a = symsearch(var);
+
+			char* var2 = (char*)strtok($1, "%");
+			int b = symsearch(var2);
+
+			if(a != -1) {$$ = fmod(sym[a], sym[b]);  } 
+		     }
+    | VAR MOD rexpr {  
+			char* var = (char*)strtok($1, "%");
+			int a = symsearch(var);
+			printf("Result a, index -> %d, %d, %f\n", a, index, sym[index-1]);
+			if(a != -1) { $$ = fmod(sym[a], $3); }
+		     }
+
+    | rexpr MOD VAR {  
+			char* var = (char*)strtok($3, "%");
+			int a = symsearch(var);
+			if(a != -1) { $$ = fmod($1, sym[a]); }
+		     }
+    | rexpr POWER rexpr { $$ = pow($1, $3); }
+    | VAR POWER VAR {  
+			char* var = (char*)strtok($3, "^");
+			int a = symsearch(var);
+
+			char* var2 = (char*)strtok($1, "^");
+			int b = symsearch(var2);
+
+			if(a != -1) {$$ = pow(sym[a], sym[b]);  } 
+		     }
+    | VAR POWER rexpr {  
+			char* var = (char*)strtok($1, "^");
+			int a = symsearch(var);
+			printf("Result a, index -> %d, %d, %f\n", a, index, sym[index-1]);
+			if(a != -1) { $$ = pow(sym[a], $3); }
+		     }
+    | rexpr POWER VAR {  
+			char* var = (char*)strtok($3, "^");
+			int a = symsearch(var);
+			if(a != -1) { $$ = pow($1, sym[a]); }
+		     }
+    |   LPAREN rexpr RPAREN   { $$ = ( $2 ); }
+    |   MINUS rexpr %prec MINUS {$$ = -$2;}
+    | VAR ASSIGN rexpr { $$ = $3;
+				char* var = (char*)strtok($1, "=");
+				if(index == 0)
+				{
+					symname = malloc(sizeof(char**) * 100);	
+					sym = malloc(sizeof(int) * 100);
+				}
+				symname[index] = malloc(sizeof(char*) * 1);
+				sprintf(symname[index], "%s", var);
+				sym[index] =  $3;
+				printf("$1: %s,%s,%f", $1,var,$3);
+				printf("index, sym -> %d, %f, %s\n", index, sym[index], symname[index]); 
+				index++;
+		       }
+    | VAR {
+		chop($1);
+	  	int i = symsearch($1);
+		$$ = sym[i];
+		printf("sym[i], i: %s, %f, %d", $1, sym[i], i);
+	  }
+    | REAL { $$ = $1; }
+    | INT { $$ = (double)$1; } 
+;
+    
+%%
+
+int symsearch(char* a)
+{
+  int i = 0;
+  for(i=0; i<index; i++)
+  {
+	printf("Result a, index -> %s, %s, %d\n", a, symname[i], i);
+  	if(strcmp(a,symname[i]) == 0)
+	{
+		return i;
+	}
+	return -1;
+  }
+}
+
+void chop(char *s) {
+    while(*s && *s != '\n' && *s != '\r') s++;
+ 
+    *s = 0;
+}
+
+int yyerror(const char * str)
+{
+   fprintf(stderr, "%s\n", str);
+}

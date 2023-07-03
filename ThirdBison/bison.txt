@@ -1,0 +1,90 @@
+/*
+   Timothy Lee
+   12/03/14
+    Bison/Flex 3
+    - Create lexical scanner using flex that can recognize tokens including integers and floats in unison with Bison
+       - While loop to call yylex() and switch to determine which defined token recognized
+          - returns different token based off of a variety of regex matched characters
+       - Calculate expression with proper associativity and precedence and print results
+       - Add support for variables by providing a symbol table that can lookup values
+       - Add support for parsing if/then/else expressions
+    - generate "lex.yy.c" file by using proper make commands from test.l
+*/
+
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+int yyerror(const char*);
+%}
+
+%error-verbose
+
+%union{
+double real;
+int integer;
+char* string;
+}
+
+%start line
+%type <real> rexpr
+%type <string> stmt
+
+%right ASSIGN
+%left PLUS MINUS
+%left MULT DIV
+%nonassoc LPAREN RPARENT
+
+%token <real> REAL 
+%token <integer> INT
+%token <string> STRING
+%token <string> PLUS  
+%token <string> MINUS  
+%token <string> MULT  
+%token <string> DIV   
+%token <string> ASSIGN   
+%token <string> LPAREN
+%token <string> RPAREN   
+%token <string> HORN  
+%token <string> QUESTION  
+%token ENDOFLINE  
+%token UNREC  
+%token IF THEN ELSE
+
+
+%%
+
+
+
+line: 
+    | line HORN stmt QUESTION ENDOFLINE   {   printf("=\t%s\n", $3);  }
+    | line stmt ENDOFLINE {printf("Result -> %s\n", $2);  }
+    | line ENDOFLINE   
+;
+stmt:     rexpr 
+        | if_stmt
+        ;
+
+if_stmt:
+          IF rexpr THEN stmt
+        | IF rexpr THEN stmt ELSE stmt
+        ;
+rexpr: rexpr PLUS rexpr {  $$ = $1 + $3; }
+    | rexpr MINUS rexpr { $$ = $1 - $3; }
+    | rexpr MULT rexpr { $$ = $1 * $3; }
+    | rexpr DIV rexpr { $$ = $1 / $3; }
+    |   LPAREN rexpr RPAREN   { $$ = ( $2 ); }
+    |   MINUS rexpr %prec MINUS {$$ = -$2;}
+    | REAL { $$ = $1; }
+    | INT { $$ = (double)$1; } 
+;
+    
+%%
+
+
+
+int yyerror(const char * str)
+{
+   fprintf(stderr, "%s\n", str);
+}
